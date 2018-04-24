@@ -3,6 +3,8 @@ import numpy as np
 from scipy import misc
 import os, sys
 from numpy import *
+from matplotlib import pyplot as plt
+import time
 
 class OpticalFlowModel:
 
@@ -11,6 +13,10 @@ class OpticalFlowModel:
 
     def getOptical(self, new, old):
         windowsSize = 5
+        new = cv2.GaussianBlur(new, (5, 5), 1);
+        old = cv2.GaussianBlur(old, (5, 5), 1);
+        new = cv2.resize(new, (0,0), fx=0.25, fy=0.25) 
+        old = cv2.resize(old, (0,0), fx=0.25, fy=0.25) 
         k = windowsSize // 2;
         newImage = new[:]
         It = new - old
@@ -21,20 +27,38 @@ class OpticalFlowModel:
         col = newImage.shape[1]
         for i in range(k, row - k):
             for j in range(k, col - k):
-                A = mat(zeros((windowsSize**2, 2)))
-                b = mat(zeros((windowsSize**2, 1)))
-                for m in range(-k, k+1):
-                    for n in range(-k, k+1):
-                        A[(m+2)*5+n+2, 0] = Ix[i+m][j+n] 
-                        A[(m+2)*5+n+2, 1] = Iy[i+m][j+n]
-                        b[(m+2)*5+n+2] = -It[i+m][j+n]
-                tensor = A.T * A
-                if linalg.det(tensor) != 0:
-                    result = (tensor).I * A.T * b
-                    val = (result[0]**2 + result[1]**2) * 10
-                    if val > 20:
-                        newImage[i][j] = 255
+                A = self.buildA(Ix, Iy, i, j, windowsSize)
+                b = self.buildB(It, i, j, windowsSize);
+                if np.linalg.det((A.T).dot(A)) != 0:
+                    Vpt = np.matrix((A.T).dot(A)).I.dot(A.T).dot(b)
+                    if (Vpt[0,0]**2 + Vpt[0,1]**2)**0.5 > 10:
+                        newImage[i][j] = 0  
         return newImage
+
+    def buildA(self, Ix, Iy, x, y, kernelSize):
+        #build a kernel containing pixel intensities
+        mean = kernelSize//2
+        count = 0
+       #home = img[centerX, centerY] #storing the intensity of the center pixel
+        A = np.zeros([kernelSize**2, 2])
+        for i in range(-mean,mean+1): #advance the x
+            for j in range(-mean,mean+1): #advance the y 
+                Ax = Ix[x+i][y+j]
+                Ay = Iy[x+i][y+j]
+                A[count] = np.array([Ax, Ay])
+                count += 1
+        return A
+
+    def buildB(self, It, x, y, kernelSize):
+        mean = kernelSize//2
+        count = 0
+        B = np.zeros([kernelSize**2])
+        for i in range(-mean,mean+1):
+            for j in range(-mean,mean+1):
+                Bt = It[x+i][y+j]
+                B[count] = Bt
+                count += 1
+        return B
         
 if __name__=="__main__":
     # Create a VideoCapture object and read from input file
@@ -55,8 +79,8 @@ if __name__=="__main__":
         ret, new = cap.read()   
         if ret == True:
             new = cv2.cvtColor(new, cv2.COLOR_BGR2GRAY)
-            opticalImage = model.getOptical(new, old)
-            misc.imsave('./res/res' + str(count) + '.png', opticalImage)
+            #opticalImage = model.getOptical(new, old)
+            misc.imsave('./res/res' + str(count) + '.bmp', new)
             count += 1
         else:
             break
