@@ -14,8 +14,7 @@ class LK:
     def __init__(self):
         self = self
 
-        
-    def lucas_kanade_np(self, im1, im2, win=14):
+    def lucas_kanade_np(self, im1, im2, win=9):
         im1 = np.array(im1)
         im2 = np.array(im2)
         assert im1.shape == im2.shape
