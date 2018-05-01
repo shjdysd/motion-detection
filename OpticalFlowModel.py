@@ -11,25 +11,33 @@ class OpticalFlowModel:
     def __init__(self):
         self = self
 
+    def normalize(u, v):
+        l = (u[:] ** 2 + v[:] ** 2) ** 0.5
+        u = u[:] / l[i]
+        v = v[:] / l[i]
+
+        return (u,v)
+
     def getOptical(self, new, old):
         windowsSize = 5
         new = cv2.GaussianBlur(new, (5, 5), 1);
         old = cv2.GaussianBlur(old, (5, 5), 1);
-        new = cv2.resize(new, (0,0), fx=0.25, fy=0.25) 
-        old = cv2.resize(old, (0,0), fx=0.25, fy=0.25) 
+        new = cv2.resize(new, (0,0), fx=1, fy=1) 
+        old = cv2.resize(old, (0,0), fx=1, fy=1) 
         k = windowsSize // 2;
-        newImage = new[:]
-        It = new - old
+        newImage = np.zeros_like(new);
+        It = cv2.subtract(new,old)
         new = cv2.Laplacian(new, cv2.CV_64F)#CV_64F为图像深度
-        Ix = cv2.Sobel(new,cv2.CV_64F,1,0,ksize=3)#1，0参数表示在x方向求一阶导数
-        Iy = cv2.Sobel(new,cv2.CV_64F,0,1,ksize=3)#0,1参数表示在y方向求一阶导数 
+        old = cv2.Laplacian(old, cv2.CV_64F)#CV_64F为图像深度
+        Ix = cv2.Sobel(old,cv2.CV_64F,1,0,ksize=3)#1，0参数表示在x方向求一阶导数
+        Iy = cv2.Sobel(old,cv2.CV_64F,0,1,ksize=3)#0,1参数表示在y方向求一阶导数 
         lamb = 10
         row = newImage.shape[0]
         col = newImage.shape[1]
         u = np.zeros_like(newImage, dtype='float64')
         v = np.zeros_like(newImage, dtype='float64')
-        
-        for n in range(15):
+
+        for n in range(8):
             for i in range(1, row-1):
                 for j in range(1, col-1):
                     _u = (u[i-1, j]+u[i+1, j]+u[i, j-1]+u[i, j+1]) * 0.25
@@ -37,8 +45,30 @@ class OpticalFlowModel:
                     alpha = (Ix[i, j] * _u + Iy[i, j] * _v + It[i, j]) / (1 + lamb*(Ix[i, j] ** 2 + Iy[i, j] ** 2)) * lamb
                     u[i, j] = _u - alpha * Ix[i, j]
                     v[i, j] = _v - alpha * Iy[i, j]
-                    if (u[i, j] ** 2 + v[i, j] ** 2) ** 0.5 > 1:
-                        newImage[i][j] = 0
+        
+        for i in range(row):
+            for j in range(col):
+                magnitude = (u[i, j] ** 2 + v[i, j] ** 2) ** 0.5
+                if (magnitude > 0.1 and magnitude < 2) or (magnitude > -2 and magnitude < -0.1):
+                    newImage[i,j] = old[i, j]
+                    
+                else:
+                    newImage[i, j] = 0
+                    u[i, j] = 0
+                    v[i, j] = 0
+        '''
+        plt.figure()
+        plt.imshow(Ix)
+        plt.set_cmap('gray')
+        plt.show()
+        '''
+        '''
+        X = np.arange(0, col);
+        Y = np.arange(0, row);
+        plt.figure();
+        Q = plt.quiver(X, Y, u, v)
+        plt.show()
+        '''
         '''
         for i in range(k, row - k):
             for j in range(k, col - k):
@@ -85,8 +115,9 @@ if __name__=="__main__":
     # Check if camera opened successfully
     if (cap.isOpened()== False): 
         print("Error opening video stream or file")
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter('output.avi',fourcc, 20.0, (160,90))
+
+    fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
+    videoWriter = cv2.VideoWriter('output.avi',fourcc, 24.0, (640,360))
      
     # Read until video is completed
     ret, old = cap.read()
@@ -94,16 +125,21 @@ if __name__=="__main__":
     count = 1
     model = OpticalFlowModel()
     while(cap.isOpened()):
-        ret, new = cap.read()   
+        ret, new = cap.read()    
         if ret == True:
             new = cv2.cvtColor(new, cv2.COLOR_BGR2GRAY)
             opticalImage = model.getOptical(new, old)
-            out.write(opticalImage)
-            misc.imsave('./res/res' + str(count) + '.bmp', opticalImage)
+            opticalImage = cv2.GaussianBlur(opticalImage, (5, 5), 1);
+            #out.write(opticalImage)
+            misc.imsave('./res/res' + str(count) + '.jpg', opticalImage)
+            frame = cv2.imread('./res/res' + str(count) + '.jpg')
+            videoWriter.write(frame)
             count += 1
+            old = new;
         else:
             break
 
     # When everything done, release the video capture object
     cap.release()
     #cv2.destroyAllWindows()
+    videoWriter.release()

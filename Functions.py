@@ -12,7 +12,7 @@ def directive(image):
     Iy[1:-1, 1:-1] = (image[2:, 1:-1] - image[:-2, 1:-1])/2
     return Ix, Iy
 
-def smooth(image, filterKernel):
+def filter(image, filterKernel):
     k = len(filterKernel)
     #in x direction
     newImage = np.zeros(image.shape)
