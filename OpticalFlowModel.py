@@ -97,7 +97,7 @@ if __name__=="__main__":
         ret, new = cap.read()   
         if ret == True:
             new = cv2.cvtColor(new, cv2.COLOR_BGR2GRAY)
-            opticalImage = model.getOptical(new, old)
+            opticalImage = model.optical_flow(new, old, 15, 1e-2)
             out.write(opticalImage)
             misc.imsave('./res/res' + str(count) + '.bmp', opticalImage)
             count += 1

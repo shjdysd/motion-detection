@@ -45,7 +45,7 @@ class LK:
         return op_flow
 
     def settleFrame(self, image):
-        return Functions.Canny(image, 100, 200)
+        return Functions.Canny(image)
 
 
 
