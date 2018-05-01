@@ -10,7 +10,7 @@ import LK
 if os.path.isdir("./res") == False:
     os.mkdir("./res")
 
-cap = cv2.VideoCapture('./hz.mp4')
+cap = cv2.VideoCapture('./hz.flv')
 if (cap.isOpened()== False): 
     print("Error opening video stream or file")
 
