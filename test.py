@@ -1,22 +1,24 @@
 import cv2
 import numpy as np
 from scipy import misc
-import os, sys
+import os
+import sys
 from numpy import *
 from matplotlib import pyplot as plt
 import time
 import LK
+from Functions import *
 
 if os.path.isdir("./res") == False:
     os.mkdir("./res")
 
-cap = cv2.VideoCapture('./hz.flv')
-if (cap.isOpened()== False): 
+cap = cv2.VideoCapture('./hz.mp4')
+if (cap.isOpened() == False):
     print("Error opening video stream or file")
 
 fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-videoWriter = cv2.VideoWriter('output.avi',fourcc, 24.0, (640, 360))
- 
+videoWriter = cv2.VideoWriter('output.avi', fourcc, 24.0, (640, 360))
+
 ret, old = cap.read()
 old = cv2.cvtColor(old, cv2.COLOR_BGR2GRAY)
 count = 0
@@ -25,15 +27,13 @@ while(cap.isOpened()):
     ret, new = cap.read()
     if ret == True:
         new = cv2.cvtColor(new, cv2.COLOR_BGR2GRAY)
-        """
-        result = model.settleFrame(new)
-        misc.imsave('./res/res' + str(count) + '.jpg', result)
-        frame = cv2.imread('./res/res'+ str(count) +'.jpg')
-        """
         result = model.lucas_kanade_np(new, old)
-        misc.imsave('./res/res' + str(count) + '.jpg', result)
-        frame = cv2.imread('./res/res'+ str(count) +'.jpg')
-        #cv2.waitKey(100) 
+        result1 = Canny(result)
+        result2 = drawFrame(result1, result, np.max(result) * 0.2)
+        misc.imsave('./res/res' + str(count) + '.jpg', result2)
+        frame = cv2.imread('./res/res' + str(count) + '.jpg')
+
+        # cv2.waitKey(100)
         videoWriter.write(frame)
         old = new
         count += 1
@@ -42,4 +42,4 @@ while(cap.isOpened()):
 
 # When everything done, release the video capture object
 cap.release()
-videoWriter.release() 
+videoWriter.release()
