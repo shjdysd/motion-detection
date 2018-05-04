@@ -1,14 +1,4 @@
-import cv2
 import numpy as np
-from scipy import misc
-import os
-import sys
-from numpy import *
-from matplotlib import pyplot as plt
-import time
-import pylab
-from scipy import signal
-from Functions import *
 
 
 class LK:
@@ -16,9 +6,7 @@ class LK:
     def __init__(self):
         self = self
 
-    def lucas_kanade_np(self, im1, im2, win=15):
-        #im1 = cv2.GaussianBlur(im1, (5,5), 0)
-        #im2 = cv2.GaussianBlur(im2, (5,5), 0)
+    def optical_flow(self, im1, im2, win=15):
         im1 = im1.astype(np.float64)
         im2 = im2.astype(np.float64)
         I_x = np.zeros(im1.shape)
@@ -48,11 +36,4 @@ class LK:
         op_flow_y = op_flow[..., 1]
         op_mag = (op_flow[..., 0]**2 + op_flow[..., 1]**2)**0.5
 
-        #op_mag = self.MediumFilter(op_mag)
-        #maxMag = np.max(op_mag)
-        #op_flow_x = np.where(op_mag > np.ones(op_mag.shape) * maxMag * 0.01, np.ones((op_flow_x.shape)) * 255, np.zeros((op_flow_x.shape)))
-        #op_flow_y = np.where(op_mag > np.ones(op_mag.shape) * maxMag * 0.01, np.ones((op_flow_y.shape)) * 255, np.zeros((op_flow_y.shape)))
-        #op_mag = (op_flow_x**2 + op_flow_y**2)**0.5
-
         return op_mag
-        # return Functions.Canny(op_mag)
