@@ -49,13 +49,13 @@ while(cap.isOpened()):
     ret, img = cap.read()
     if ret == True:
         result = scene.update_scene(img)
+        #result[result > np.max(result) * 0.5] = 255
         misc.imsave('./res/res' + str(count) + '.jpg', result)
         frame = cv2.imread('./res/res' + str(count) + '.jpg')
         videoWriter.write(frame)
         count += 1
     else:
         break
-
 # When everything done, release the video capture object
 cap.release()
 videoWriter.release()
