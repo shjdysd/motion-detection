@@ -5,3 +5,5 @@
 res/.DS_Store
 .DS_Store
 *.mp4
+*.idea
+*.xml
