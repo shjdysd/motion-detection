@@ -26,9 +26,7 @@ scene = Scene(img, 'HS')
 while(cap.isOpened()):
     ret, img = cap.read()
     if ret == True:
-        
         result = scene.update_scene(img)
-
         misc.imsave('./res/res' + str(count) + '.jpg', result)
         frame = cv2.imread('./res/res' + str(count) + '.jpg')
         videoWriter.write(frame)

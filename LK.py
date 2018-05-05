@@ -35,5 +35,4 @@ class LK:
         op_flow_x = op_flow[..., 0]
         op_flow_y = op_flow[..., 1]
         op_mag = (op_flow[..., 0]**2 + op_flow[..., 1]**2)**0.5
-
         return op_mag

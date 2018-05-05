@@ -48,14 +48,17 @@ class Scene:
         kmeans = MiniBatchKMeans(n_clusters=size, batch_size=100).fit(trainSet)
         self.centers = kmeans.cluster_centers_.astype(np.int32)
 
-    def __drawRectangle(self):
+    def __getMinDistance(self):
         minDiff = 1000
-        DJSet = DisjointSet.DisjointSet()
         for i in range(self.centers.size // 2):
             for j in range(i + 1, self.centers.size // 2):
                 diff = np.abs(self.centers[j] - self.centers[i])
-                minDiff = np.minimum(minDiff, diff[0] + diff[1])
-        vehicleThreshold = minDiff * 3
+                minDiff = np.minimum(minDiff, (diff[0]**2 + diff[1]**2)**0.5)
+        return minDiff
+
+    def __drawRectangle(self):
+        DJSet = DisjointSet.DisjointSet()
+        vehicleThreshold = self.__getMinDistance() * 3
         for i in range(self.centers.size // 2):
             for j in range(self.centers.size // 2):
                 if i == j:
