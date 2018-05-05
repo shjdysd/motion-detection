@@ -6,7 +6,7 @@ from HS import *
 
 class Scene:
 
-    def __init__(self, orig ,optical_flow='LK'):
+    def __init__(self, orig, accumulate,optical_flow='LK'):
         self = self
         if optical_flow == 'LK':
             self.model = LK()
@@ -21,6 +21,7 @@ class Scene:
         self.threshold = np.max(self.diff) * 0.1
         self.centers = []
         self.output = orig
+        self.accumulate = accumulate
 
     def update_scene(self, orig):
         self.orig = orig
@@ -28,9 +29,10 @@ class Scene:
         self.prvs = self.curr
         self.curr = cv2.cvtColor(orig, cv2.COLOR_BGR2GRAY).astype(np.float64)
         self.diff = abs(self.curr - self.prvs)
+        self.diff[self.accumulate != 0] = 0
         self.threshold = np.max(self.diff) * 0.1
         self.op_flow = self.model.optical_flow(self.curr, self.prvs)
-        self.__k_means()
+        self.centers = self.__k_means()
         self.__drawRectangle()
         return self.output
     
@@ -45,8 +47,8 @@ class Scene:
                     trainSet.append([i, j])
         trainSet = np.array(trainSet)
         size = trainSet.size // 500
-        kmeans = MiniBatchKMeans(n_clusters=size, batch_size=100).fit(trainSet)
-        self.centers = kmeans.cluster_centers_.astype(np.int32)
+        kmeans = MiniBatchKMeans(n_clusters=size, batch_size=50).fit(trainSet)
+        return kmeans.cluster_centers_.astype(np.int32)
 
     def __drawRectangle(self):
         minDiff = 1000
@@ -77,8 +79,8 @@ class Scene:
                 elif member[1] > frame[3]:
                     frame[3] = member[1]
             speed = self.__speed_test(frame)
-            if speed < 5 or frame[3] - frame[1] < self.orig.shape[1] * 0.8 or frame[3] - frame[1] > self.orig.shape[1] * 0.5 \
-                or frame[2] - frame[0] < self.orig.shape[1] * 0.8 or frame[2] - frame[0] > self.orig.shape[0] * 0.5:
+            if speed < 5 or frame[3] - frame[1] < self.orig.shape[1] * 50 or frame[3] - frame[1] > self.orig.shape[1] * 0.5 \
+                or frame[2] - frame[0] < self.orig.shape[0] * 50 or frame[2] - frame[0] > self.orig.shape[0] * 0.5:
                 continue
             color = (255, 255, 255)
             if speed < 40:
