@@ -3,10 +3,12 @@ from sklearn.cluster import MiniBatchKMeans
 import DisjointSet
 from LK import *
 from HS import *
+from visualize import *
+
 
 class Scene:
 
-    def __init__(self, orig, accumulate,optical_flow='LK'):
+    def __init__(self, orig, accumulate, optical_flow='LK'):
         self = self
         if optical_flow == 'LK':
             self.model = LK()
@@ -31,7 +33,7 @@ class Scene:
         self.prvs = self.curr
         self.curr = cv2.cvtColor(orig, cv2.COLOR_BGR2GRAY).astype(np.float64)
         self.diff = abs(self.curr - self.prvs)
-        self.road += self.diff 
+        self.road += self.diff
         self.diff[self.accumulate != 0] = 0
         self.threshold = np.max(self.diff) * 0.1
         self.op_flow = self.model.optical_flow(self.curr, self.prvs)
@@ -49,7 +51,7 @@ class Scene:
                 if self.diff[i][j] > self.threshold:
                     trainSet.append([i, j])
         trainSet = np.array(trainSet)
-        kmeans = MiniBatchKMeans(n_clusters = 100).fit(trainSet)
+        kmeans = MiniBatchKMeans(n_clusters=100).fit(trainSet)
         return kmeans.cluster_centers_.astype(np.int32)
 
     def __getMinDistance(self):
@@ -58,7 +60,8 @@ class Scene:
             for ctr2 in self.centers:
                 diff = ctr2 - ctr1
                 distance = (diff[0]**2 + diff[1]**2)**0.5
-                if distance > 0: minDiff = np.minimum(minDiff, distance)
+                if distance > 0:
+                    minDiff = np.minimum(minDiff, distance)
         return minDiff
 
     def __drawRectangle(self):
@@ -90,6 +93,9 @@ class Scene:
                 speed = self.__speed_test(frame)
             else:
                 speed = self.__speed_test_lucas(frame)
+            # write to data
+            writeSpeedToTxt(speed)
+
             """
             if speed < 5 or frame[3] - frame[1] < self.orig.shape[1] * 50 or frame[3] - frame[1] > self.orig.shape[1] * 0.5 \
                 or frame[2] - frame[0] < self.orig.shape[0] * 50 or frame[2] - frame[0] > self.orig.shape[0] * 0.5:
@@ -124,4 +130,3 @@ class Scene:
         for i in range(len(car)):
             speed[i] = np.max(car[i, :])
         return np.median(speed) / (0.15 * (y_max * 1.0 / self.orig.shape[0]))
-
