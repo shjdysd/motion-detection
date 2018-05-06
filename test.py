@@ -7,15 +7,16 @@ from numpy import *
 from matplotlib import pyplot as plt
 import Canny
 from Scene import *
+from visualize import *
 
 if os.path.isdir("./res") == False:
     os.mkdir("./res")
 
 # preprocessing video, reduce effect from camera shaking
-cap = cv2.VideoCapture('./videos/hz.mp4')
-if (cap.isOpened()== False): 
+cap = cv2.VideoCapture('./videos/2.mp4')
+if (cap.isOpened() == False):
     print("Error opening video stream or file")
-accumulate = np.zeros([360,640])
+accumulate = np.zeros([360, 640])
 count = 0
 while(cap.isOpened()):
     ret, img = cap.read()
@@ -33,7 +34,7 @@ canny = cv2.filter2D(canny, -1, kernel)
 misc.imsave('./res/canny.jpg', canny)
 
 
-cap = cv2.VideoCapture('./videos/hz.mp4')
+cap = cv2.VideoCapture('./videos/2.mp4')
 if (cap.isOpened() == False):
     print("Error opening video stream or file")
 
@@ -52,6 +53,7 @@ while(cap.isOpened()):
         #result[result > np.max(result) * 0.5] = 255
         misc.imsave('./res/res' + str(count) + '.jpg', result)
         frame = cv2.imread('./res/res' + str(count) + '.jpg')
+        writeCountToTxt(count)
         videoWriter.write(frame)
         count += 1
     else:
@@ -59,3 +61,5 @@ while(cap.isOpened()):
 # When everything done, release the video capture object
 cap.release()
 videoWriter.release()
+
+#visualization()
