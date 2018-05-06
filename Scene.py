@@ -23,6 +23,7 @@ class Scene:
         self.output = orig
         self.accumulate = accumulate
         self.road = np.zeros(self.curr.shape)
+        self.name_of_flow = optical_flow
 
     def update_scene(self, orig):
         self.orig = orig
@@ -85,7 +86,10 @@ class Scene:
                     frame[3] = member[1]
             if frame[3] - frame[1] == 0 or frame[2] - frame[0] == 0:
                 continue
-            speed = self.__speed_test(frame)
+            if self.name_of_flow == 'HS':
+                speed = self.__speed_test(frame)
+            else:
+                speed = self.__speed_test_lucas(frame)
             """
             if speed < 5 or frame[3] - frame[1] < self.orig.shape[1] * 50 or frame[3] - frame[1] > self.orig.shape[1] * 0.5 \
                 or frame[2] - frame[0] < self.orig.shape[0] * 50 or frame[2] - frame[0] > self.orig.shape[0] * 0.5:
@@ -108,5 +112,16 @@ class Scene:
         speed = np.zeros(len(car))
         for i in range(len(car)):
             speed[i] = np.max(car[i, :])
+        return np.median(speed) / (2.5 * (y_max * 1.0 / self.orig.shape[0]))
 
-        return np.median(speed) / (2.5 * (y_max / self.orig.shape[0]))
+    def __speed_test_lucas(self, frame):
+        x_max = frame[3]
+        x_min = frame[1]
+        y_max = frame[2]
+        y_min = frame[0]
+        car = np.array(self.op_flow[y_min:y_max, x_min:x_max])
+        speed = np.zeros(len(car))
+        for i in range(len(car)):
+            speed[i] = np.max(car[i, :])
+        return np.median(speed) / (0.15 * (y_max * 1.0 / self.orig.shape[0]))
+
