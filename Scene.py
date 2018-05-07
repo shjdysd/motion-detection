@@ -21,7 +21,7 @@ class Scene:
         self.op_flow = np.zeros_like(self.prvs)                                         # Optical Flow result
         self.objs = []                                                                  # Set of objects detected so far
         self.diff = np.zeros(self.orig.shape)
-        self.threshold = np.max(self.diff) * 0.1
+        self.threshold = np.max(self.diff) * 0.05
         self.centers = []
         self.output = orig
         self.accumulate = accumulate
@@ -87,8 +87,8 @@ class Scene:
         return overlapArea
 
     def __isVehicle(self, frame):
-        factor = 0.4
-        width = frame[3] - frame[1]
+        factor = 0.7
+        width = frame[2] - frame[0]
         templateWidth = self.templeteVehicle[0] * (frame[2]+frame[0])/2 + self.templeteVehicle[1]
         if width > templateWidth * factor and width * factor < templateWidth:
             return True
@@ -109,7 +109,7 @@ class Scene:
 
     def __addPoint(self, frame):
         self.x.append((frame[0]+frame[2])/2)
-        self.y.append(frame[3] - frame[1])
+        self.y.append(frame[2] - frame[0])
 
     def __f_1(self, x, A, B):  
         return A*x + B
@@ -139,7 +139,7 @@ class Scene:
 
     def __accessVehicles(self):
         DJSet = DisjointSet.DisjointSet()
-        vehicleThreshold = self.__getMinDistance() * 8
+        vehicleThreshold = self.__getMinDistance() * 5
         for i in range(self.centers.size // 2):
             for j in range(self.centers.size // 2):
                 if i == j:
