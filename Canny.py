@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
 import cv2
+from sklearn.cluster import MiniBatchKMeans
+import DisjointSet
+import queue
 
 def directive(image):
     Ix = np.zeros(image.shape)
@@ -11,32 +14,6 @@ def directive(image):
     Ix[0:-1, 1:-1] = (image[0:-1, 2:] - image[0:-1, :-2])/2
     Iy[1:-1, 1:-1] = (image[2:, 1:-1] - image[:-2, 1:-1])/2
     return Ix, Iy
-
-def smooth(image, filterKernel):
-    k = len(filterKernel)
-    #in x direction
-    newImage = np.zeros(image.shape)
-    for i in range(0, len(image)):
-        for j in range(0, len(image[0])):
-            if j < k//2 or len(image[0]) - j - 1 < k//2:
-                newImage[i, j] = 0
-            else:
-                count = 0
-                for n in range(0, k):
-                    count += image[i][j+k//2-n] * filterKernel[n]
-                newImage[i][j] = count
-    #in y direction
-    image = newImage
-    for j in range(0, len(image[0])):
-        for i in range(0, len(image)):
-            if i < k//2 or len(image) - i - 1 < k//2: 
-                newImage[i][j] = 0
-            else:
-                count = 0
-                for n in range(0, k):
-                    count += image[i+k//2-n][j] * filterKernel[n]
-                newImage[i][j] = count
-    return newImage
 
 def magnitude(x, y):
     newImage = np.zeros(x.shape)
@@ -68,7 +45,7 @@ def mapping(img):
     maxValue = np.max(img)
     newImage = img / maxValue * 255
     return newImage
-
+    
 def noneMax(image, direction):
     newImage = np.zeros(image.shape)
     row = image.shape[0]
@@ -99,11 +76,9 @@ def noneMax(image, direction):
                 elif j < col - 1 and i > 0 and val < image[i-1][j+1]:
                     image[i][j] = 0          
     return image
-
-
+   
 def dualThreshold(NMS):
     DT = np.zeros(NMS.shape)           
-    # 定义高低阈值
     TL = 0.05 * np.max(NMS)
     TH = 0.4 * np.max(NMS)
     for i in range(1, len(DT)-1):
@@ -117,49 +92,6 @@ def dualThreshold(NMS):
                 DT[i, j] = 1
     return DT * 255
 
-def drawFrame(img, originalImg, threshold):
-    isVisited = np.zeros(img.shape)
-    row = img.shape[0]
-    col = img.shape[1]
-    for i in range(row):
-        for j in range(col):
-            if isVisited[i][j] == 0 and img[i][j] > threshold:
-                frame = np.array([i,j,i,j])
-                frame= dfs(img, isVisited, i, j, frame, row, col)
-                #print((frame[2] - frame[0],frame[3] - frame[1]))
-                x = frame[2] - frame[0]
-                y = frame[3] - frame[1]
-                if x > 9 and y > 9 and x < row/5 and y < col/5:
-                    #这里x,y反了
-                    cv2.rectangle(originalImg, (frame[1],frame[0]),(frame[3],frame[2]), 255, 1)
-    return originalImg
-
-
-
-def dfs(img, isVistied, i, j, frame, row, col):
-    isVistied[i][j] = 1
-    if i < frame[0]: frame[0] = i
-    elif i > frame[2]: frame[2] = i
-    if j < frame[1]: frame[1] = j
-    elif j > frame[3]: frame[3] = j
-    if i > 0 and isVistied[i-1][j] == 0 and img[i-1][j] > 0:
-        frame = dfs(img, isVistied, i-1, j, frame, row, col)
-    if i < row-1 and isVistied[i+1][j] == 0 and img[i+1][j] > 0:
-        frame = dfs(img, isVistied, i+1, j, frame, row, col)
-    if j > 0 and isVistied[i][j-1] == 0 and img[i][j-1] > 0:
-        frame = dfs(img, isVistied, i, j-1, frame, row, col)
-    if j < col-1 and isVistied[i][j+1] == 0 and img[i][j+1] > 0:
-        frame = dfs(img, isVistied, i, j+1, frame, row, col)
-    if i > 0 and j > 0 and isVistied[i-1][j-1] == 0 and img[i-1][j-1] > 0:
-        frame = dfs(img, isVistied, i-1, j-1, frame, row, col)
-    if i > 0 and j > col-1 and isVistied[i-1][j+1] == 0 and img[i-1][j+1] > 0:
-        frame = dfs(img, isVistied, i-1, j+1, frame, row, col)
-    if i < row-1 and j > 0 and isVistied[i+1][j-1] == 0 and img[i+1][j-1] > 0:
-        frame = dfs(img, isVistied, i+1, j-1, frame, row, col)
-    if i < row-1 and j < col-1 and isVistied[i+1][j+1] == 0 and img[i+1][j+1] > 0:
-        frame = dfs(img, isVistied, i+1, j+1, frame, row, col)
-    return frame
-
 def Canny(img):
     img = cv2.GaussianBlur(img, (5,5), 0)
     img = img.astype(np.float64)
@@ -169,5 +101,4 @@ def Canny(img):
     mag = mapping(mag)
     mag = noneMax(mag, direction)
     mag = dualThreshold(mag)
-    #mag = drawFrame(mag, img, np.max(mag) * 0.2)
     return mag

@@ -2,3 +2,10 @@
 *.bmp
 *.avi
 *.jpg
+res/.DS_Store
+.DS_Store
+*.mp4
+*.idea
+*.xml
+res
+*.txt
