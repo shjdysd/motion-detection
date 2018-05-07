@@ -101,7 +101,7 @@ class Scene:
             return False
 
     def __update_template(self, frame):
-        edge = 5
+        edge = 10
         if frame[0] < edge or frame[1] < edge or frame[2] > self.orig.shape[0] - edge or frame[3] > self.orig.shape[1] - edge:
             return
         self.__addPoint(frame)
