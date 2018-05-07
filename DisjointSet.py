@@ -14,7 +14,8 @@ class DisjointSet(object):
         leaderb = self.leader.get(b)
         if leadera is not None:
             if leaderb is not None:
-                if leadera == leaderb: return # nothing to do
+                if leadera == leaderb: 
+                    return
                 groupa = self.group[leadera]
                 groupb = self.group[leaderb]
                 if len(groupa) < len(groupb):
