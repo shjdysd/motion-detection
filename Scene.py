@@ -74,15 +74,9 @@ class Scene:
                     if frame2[0] < 20 and self.__isVehicle(frame2):
                         self.vehicles[len(self.vehicles)] = (1, frame2)
 
-    def __computeArea(self,frame1, frame2):
-        A = frame1[0]
-        B = frame1[1]
-        C = frame1[2]
-        D = frame1[3]
-        E = frame2[0]
-        F = frame2[1]
-        G = frame2[2]
-        H = frame2[3]
+    def __computeArea(self, frame1, frame2):
+        A = frame1[0]; B = frame1[1]; C = frame1[2]; D = frame1[3];
+        E = frame2[0]; F = frame2[1]; G = frame2[2]; H = frame2[3];
         overlapArea = max(min(C,G)-max(A,E), 0)*max(min(D,H)-max(B,F), 0)
         return overlapArea
 
@@ -191,8 +185,6 @@ class Scene:
             else:
                 color = (255, 0, 0)
             cv2.rectangle(self.output, (frame[1], frame[0]), (frame[3], frame[2]), color, 3)
-            for center in self.centers:
-                self.output[center[0]-2:center[0]+2,center[1]-2:center[1]+2] = 255
             cv2.putText(self.output, str(np.around(speed)), (frame[1] + 5, frame[2] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
             cv2.putText(self.output, str(key), (frame[1] + 15, frame[2] + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
 
