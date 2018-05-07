@@ -88,15 +88,15 @@ class Scene:
 
     def __isVehicle(self, frame):
         factor = 0.4
-        area = (frame[2] - frame[0]) * (frame[3] - frame[1])
-        templateArea = self.templeteVehicle[0] * (frame[2]+frame[0])/2 + self.templeteVehicle[1]
-        if area > templateArea * factor and area * factor < templateArea:
+        width = frame[3] - frame[1]
+        templateWidth = self.templeteVehicle[0] * (frame[2]+frame[0])/2 + self.templeteVehicle[1]
+        if width > templateWidth * factor and width * factor < templateWidth:
             return True
         else:
             return False
 
     def __update_template(self, frame):
-        edge = 10
+        edge = 5
         if frame[0] < edge or frame[1] < edge or frame[2] > self.orig.shape[0] - edge or frame[3] > self.orig.shape[1] - edge:
             return
         self.__addPoint(frame)
@@ -109,7 +109,7 @@ class Scene:
 
     def __addPoint(self, frame):
         self.x.append((frame[0]+frame[2])/2)
-        self.y.append((frame[2] - frame[0]) * (frame[3] - frame[1]))
+        self.y.append(frame[3] - frame[1])
 
     def __f_1(self, x, A, B):  
         return A*x + B
