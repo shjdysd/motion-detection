@@ -1,12 +1,15 @@
+##########################################################################################
+#
+# Desc: implementation of Canny edge detection and preprocessing the video
+# 
+# P.S. cv2.GaussianBlur() and cv2.filter2D() are used due to the efficiency and 
+#      could be replaced by self-implemented function in comments behaind
+#
+###########################################################################################
 from scipy import misc
-from PIL import Image
 import numpy as np
-import matplotlib.pyplot as plt
-import os, sys
 import cv2
-from sklearn.cluster import MiniBatchKMeans
-import DisjointSet
-import queue
+from Functions import * 
 
 def directive(image):
     Ix = np.zeros(image.shape)
@@ -24,20 +27,20 @@ def getDirection(Ix, Iy):
     direction = np.zeros(Ix.shape)
     for i in range(0, len(Ix)):
         for j in range(0, len(Ix[0])):
-            if Ix[i][j] == 0:
-                if Iy[i][j] == 0:
+            if Ix[i, j] == 0:
+                if Iy[i, j] == 0:
                     angle = 0
-                elif Iy[i][j] > 0:
+                elif Iy[i, j] > 0:
                     angle = 90
                 else:
                     angle = 270
             else:
-                angle = np.arctan(Iy[i][j]/Ix[i][j]) / np.pi * 180
-                if Ix[i][j] > 0 and Iy[i][j] < 0:
+                angle = np.arctan(Iy[i, j] / Ix[i, j]) / np.pi * 180
+                if Ix[i, j] > 0 and Iy[i, j] < 0:
                     angle += 360
-                if Ix[i][j] < 0:
+                if Ix[i, j] < 0:
                     angle += 180
-            direction[i][j] = angle
+            direction[i, j] = angle
     return direction
 
 def mapping(img):
@@ -52,29 +55,29 @@ def noneMax(image, direction):
     col = image.shape[1]
     for i in range(0, row):
         for j in range(0, col):
-            val = image[i][j]
-            d = direction[i][j]
+            val = image[i, j]
+            d = direction[i, j]
             if d > 180: d -= 180
             if d <= 22.5 or d > 157.5:
-                if i > 0 and val < image[i-1][j]:
-                    image[i][j] = 0
-                elif i < row - 1 and val < image[i+1][j]:
-                    image[i][j] = 0
+                if i > 0 and val < image[i-1, j]:
+                    image[i, j] = 0
+                elif i < row - 1 and val < image[i+1, j]:
+                    image[i, j] = 0
             elif d <= 67.5:
-                if j > 0 and i > 0 and val < image[i-1][j-1]:
-                    image[i][j] = 0
-                elif j < col - 1 and i < row - 1 and val < image[i+1][j+1]:
-                    image[i][j] = 0
+                if j > 0 and i > 0 and val < image[i-1, j-1]:
+                    image[i, j] = 0
+                elif j < col - 1 and i < row - 1 and val < image[i+1, j+1]:
+                    image[i, j] = 0
             elif d <= 112.5:
-                if j > 0 and val < image[i][j-1]:
-                    image[i][j] = 0
-                elif j < col - 1 and val < image[i][j+1]:
-                    image[i][j] = 0
+                if j > 0 and val < image[i, j-1]:
+                    image[i, j] = 0
+                elif j < col - 1 and val < image[i, j+1]:
+                    image[i, j] = 0
             else:
-                if j > 0 and i < row - 1 and val < image[i+1][j-1]:
-                    image[i][j] = 0
-                elif j < col - 1 and i > 0 and val < image[i-1][j+1]:
-                    image[i][j] = 0          
+                if j > 0 and i < row - 1 and val < image[i+1, j-1]:
+                    image[i, j] = 0
+                elif j < col - 1 and i > 0 and val < image[i-1, j+1]:
+                    image[i, j] = 0          
     return image
    
 def dualThreshold(NMS):
@@ -93,7 +96,7 @@ def dualThreshold(NMS):
     return DT * 255
 
 def Canny(img):
-    img = cv2.GaussianBlur(img, (5,5), 0)
+    img = cv2.GaussianBlur(img, (5,5), 0)     # img = GuassianBlur(img)
     img = img.astype(np.float64)
     Iy, Ix = directive(img)
     mag = magnitude(Ix, Iy)
@@ -102,3 +105,25 @@ def Canny(img):
     mag = noneMax(mag, direction)
     mag = dualThreshold(mag)
     return mag
+
+def preprocessing(videoAddress):
+    cap = cv2.VideoCapture(videoAddress)
+    if (cap.isOpened() == False):
+        print("Error opening video stream or file")
+    accumulate = np.zeros([360, 640])
+    count = 0
+    while(cap.isOpened()):
+        ret, img = cap.read()
+        if ret == True:
+            count += 1
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            img = img.astype(np.float64)
+            accumulate += img
+        else:
+            cap.release()
+    accumulate /= count
+    canny = Canny(accumulate)
+    kernel = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
+    canny = cv2.filter2D(canny, -1, kernel)
+    misc.imsave('./res/canny.jpg', canny)
+    return canny

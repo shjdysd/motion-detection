@@ -1,3 +1,12 @@
+##########################################################################################
+#
+# Desc: implementation of filters which may be used in this project 
+#
+###########################################################################################
+import numpy as np
+
+Guassian_Kernel = np.array([0.00598,0.060626,0.241843,0.383103,0.241843,0.060626,0.00598])
+
 def MediumFilter(image, k_size=3):
     width = k_size // 2
     kernel = np.zeros([k_size, k_size])
@@ -59,3 +68,23 @@ def LinearFilter(image, Kernel):
                         count += image[i + k // 2 - n][j] * Kernel[n]
                     newImage[i][j] = count
     return newImage
+
+def filtler2D(image, Kernel):
+    k = len(Kernel)
+    h, w = image.shape
+    newImage = np.zeros_like(image)
+    for i in range(0, h):
+        for j in range(0, w):
+            if(image[i, j] != 0):
+                if j < k // 2 or w - j - 1 < k // 2:
+                    newImage[i, j] = 0
+                else:
+                    count = 0
+                    for n in range(0, k):
+                        for m in range(0, k):
+                            count += image[i][j + k // 2 - n] * Kernel[n, m]
+                    newImage[i][j] = count
+    return newImage
+
+def GuassianBlur(img):
+    return filter2D(img, Guassian_Kernel)

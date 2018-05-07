@@ -1,10 +1,16 @@
+##########################################################################################
+#
+# Desc: Scene moudule which controll the whole video analysis
+#
+###########################################################################################
 import numpy as np
 from sklearn.cluster import MiniBatchKMeans
 import DisjointSet
 from LK import *
 from HS import *
 from visualize import *
-from scipy import optimize  
+from scipy import optimize 
+from Functions import * 
 
 
 class Scene:
@@ -18,8 +24,7 @@ class Scene:
         self.orig = orig                                                                # Original frame captured from video
         self.prvs = np.zeros(self.orig.shape)                                           # Previous frame used last calculation
         self.curr = cv2.cvtColor(orig, cv2.COLOR_BGR2GRAY).astype(np.float64)           # Current frame used need to be calculated
-        self.op_flow = np.zeros_like(self.prvs)                                         # Optical Flow result
-        self.objs = []                                                                  # Set of objects detected so far
+        self.op_flow = np.zeros_like(self.prvs)                                         # Optical Flow result                                                                 # Set of objects detected so far
         self.diff = np.zeros(self.orig.shape)
         self.threshold = np.max(self.diff) * 0.05
         self.centers = []
@@ -175,24 +180,16 @@ class Scene:
                 speed = self.__speed_test(frame)
             else:
                 speed = self.__speed_test_lucas(frame)
-            # write to data
-            writeSpeedToTxt(speed)
+            #writeSpeedToTxt(speed)
             if speed < 5 and (frame[0] < edge or frame[1] < edge or frame[2] > self.orig.shape[0] - edge or frame[3] > self.orig.shape[1] - edge):
                 self.vehicles[key] = (0,np.array([0,0,0,0]))
                 continue
-            """
-            if speed < 5 or frame[3] - frame[1] < self.orig.shape[1] * 50 or frame[3] - frame[1] > self.orig.shape[1] * 0.5 \
-                or frame[2] - frame[0] < self.orig.shape[0] * 50 or frame[2] - frame[0] > self.orig.shape[0] * 0.5:
-                continue
-            """
             color = (255, 255, 255)
             if speed < 40:
                 color = (0, 255, 0)
             else:
                 color = (255, 0, 0)
             cv2.rectangle(self.output, (frame[1], frame[0]), (frame[3], frame[2]), color, 3)
-            for center in self.centers:
-                self.output[center[0]-2:center[0]+2,center[1]-2:center[1]+2] = 255
             cv2.putText(self.output, str(np.around(speed)), (frame[1] + 5, frame[2] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
             cv2.putText(self.output, str(key), (frame[1] + 15, frame[2] + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
 

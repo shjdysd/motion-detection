@@ -1,3 +1,8 @@
+##########################################################################################
+#
+# Desc: implementation of Lucas–Kanade
+#
+###########################################################################################
 import numpy as np
 
 
@@ -15,12 +20,12 @@ class LK:
         I_x[1:-1, 1:-1] = (im1[1:-1, 2:] - im1[1:-1, :-2]) / 2 + (im2[1:-1, 2:] - im2[1:-1, :-2]) / 2
         I_y[1:-1, 1:-1] = (im1[2:, 1:-1] - im1[:-2, 1:-1]) / 2 + (im2[2:, 1:-1] - im2[:-2, 1:-1]) / 2
         I_t[1:-1, 1:-1] = im1[1:-1, 1:-1] - im2[1:-1, 1:-1]
-        params = np.zeros(im1.shape + (5,))  # Ix2, Iy2, Ixy, Ixt, Iyt
-        params[..., 0] = I_x * I_x  # I_x2
-        params[..., 1] = I_y * I_y  # I_y2
-        params[..., 2] = I_x * I_y  # I_xy
-        params[..., 3] = I_x * I_t  # I_xt
-        params[..., 4] = I_y * I_t  # I_yt
+        params = np.zeros(im1.shape + (5,)) 
+        params[..., 0] = I_x * I_x  
+        params[..., 1] = I_y * I_y  
+        params[..., 2] = I_x * I_y  
+        params[..., 3] = I_x * I_t  
+        params[..., 4] = I_y * I_t  
         del I_x, I_y, I_t
         cum_params = np.cumsum(np.cumsum(params, axis=0), axis=1)
         del params
