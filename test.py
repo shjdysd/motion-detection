@@ -11,9 +11,9 @@ from visualize import *
 
 if os.path.isdir("./res") == False:
     os.mkdir("./res")
-
+videoAddress = './videos/2.mp4'
 # preprocessing video, reduce effect from camera shaking
-cap = cv2.VideoCapture('./videos/2.mp4')
+cap = cv2.VideoCapture(videoAddress)
 if (cap.isOpened() == False):
     print("Error opening video stream or file")
 accumulate = np.zeros([360, 640])
@@ -34,7 +34,7 @@ canny = cv2.filter2D(canny, -1, kernel)
 misc.imsave('./res/canny.jpg', canny)
 
 
-cap = cv2.VideoCapture('./videos/2.mp4')
+cap = cv2.VideoCapture(videoAddress)
 if (cap.isOpened() == False):
     print("Error opening video stream or file")
 
