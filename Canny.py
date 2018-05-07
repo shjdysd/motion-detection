@@ -80,18 +80,18 @@ def noneMax(image, direction):
                     image[i, j] = 0          
     return image
    
-def dualThreshold(NMS):
-    DT = np.zeros(NMS.shape)           
-    TL = 0.05 * np.max(NMS)
-    TH = 0.4 * np.max(NMS)
+def dualThreshold(img):
+    DT = np.zeros(img.shape)           
+    TL = 0.05 * np.max(img)
+    TH = 0.4 * np.max(img)
     for i in range(1, len(DT)-1):
         for j in range(1, len(DT[0])-1):
-            if (NMS[i, j] < TL):
+            if (img[i, j] < TL):
                 DT[i, j] = 0
-            elif (NMS[i, j] > TH):
+            elif (img[i, j] > TH):
                 DT[i, j] = 1
-            elif ((NMS[i-1, j-1:j+1] < TH).any() or (NMS[i+1, j-1:j+1]).any() 
-                  or (NMS[i, [j-1, j+1]] < TH).any()):
+            elif ((img[i-1, j-1:j+1] < TH).any() or (img[i+1, j-1:j+1]).any() 
+                  or (img[i, [j-1, j+1]] < TH).any()):
                 DT[i, j] = 1
     return DT * 255
 
