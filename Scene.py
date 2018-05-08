@@ -33,7 +33,7 @@ class Scene:
         self.road = np.zeros(self.curr.shape)
         self.name_of_flow = optical_flow
         self.vehicles = {}
-        self.templeteVehicle = [0, 0, 0]                                                #height, width, number
+        self.templeteVehicle = [0, 0]                                                   #height, width, number
         self.bufferVehicles = []
         self.x = []                                                                     #used to calcuate linear fit
         self.y = []                                                                     #used to calcuate linear fit
@@ -80,14 +80,8 @@ class Scene:
                         self.vehicles[len(self.vehicles)] = (1, frame2)
 
     def __computeArea(self,frame1, frame2):
-        A = frame1[0]
-        B = frame1[1]
-        C = frame1[2]
-        D = frame1[3]
-        E = frame2[0]
-        F = frame2[1]
-        G = frame2[2]
-        H = frame2[3]
+        A = frame1[0]; B = frame1[1]; C = frame1[2]; D = frame1[3]
+        E = frame2[0]; F = frame2[1]; G = frame2[2]; H = frame2[3]
         overlapArea = max(min(C,G)-max(A,E), 0)*max(min(D,H)-max(B,F), 0)
         return overlapArea
 
@@ -106,7 +100,7 @@ class Scene:
             return
         self.__addPoint(frame)
         if len(self.x) > 2:
-            a, b = optimize.curve_fit(self.__f_1, self.x, self.y)[0]  
+            a, b = optimize.curve_fit(self.__f_1, self.x, self.y)[0]
             self.templeteVehicle[0] = a
             self.templeteVehicle[1] = b
         else:
@@ -156,6 +150,7 @@ class Scene:
             if len(DJSet.group[leader]) < 5:
                 continue
             frame = np.array([leader[0], leader[1], leader[0], leader[1]])
+
             for member in DJSet.group[leader]:
                 if member[0] < frame[0]:
                     frame[0] = member[0]
@@ -191,7 +186,7 @@ class Scene:
                 color = (255, 0, 0)
             cv2.rectangle(self.output, (frame[1], frame[0]), (frame[3], frame[2]), color, 3)
             cv2.putText(self.output, str(np.around(speed)), (frame[1] + 5, frame[2] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
-            cv2.putText(self.output, str(key), (frame[1] + 15, frame[2] + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(self.output, "Vehicle No." + str(key), (frame[1], frame[2] + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
 
     def __speed_test(self, frame):
         x_max = frame[3]
