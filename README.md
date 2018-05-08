@@ -10,7 +10,7 @@ python test.py
 ```
 
 * You could to change the params for scene function in order to run HS or LK.
-* The default speed limit for the raod is 40 miles/hour, once the vehicle speed exceed the limit, the rectangle will turn to red.
+* The default speed limit for the raod is 40 miles/hour, once the vehicle speed exceeds the limit, the rectangle will turn to red.
 * See result in ./res/output.avi
 
 
