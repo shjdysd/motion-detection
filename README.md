@@ -9,7 +9,8 @@ Our system consists of three parts: Video/Stream Processing，Vehicles Detection
 python test.py
 ```
 
-* However, you have to change the params for scene function in order to run HS or LK.
+* You could to change the params for scene function in order to run HS or LK.
+* The default speed limit for the raod is 40 miles/hour, once the vehicle speed exceed the limit, the rectangle will turn to red.
 * See result in ./res/output.avi
 
 
